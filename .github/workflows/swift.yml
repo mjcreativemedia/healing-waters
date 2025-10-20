@@ -14,4 +14,4 @@ jobs:
       - name: Build Swift package
         run: |
           cd app/Retune432App
-          swift build -c release
+          swift build -c release --product Retune432

@@ -8,7 +8,10 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .app(name: "Retune432", targets: ["Retune432App"])
+        .executable(
+            name: "Retune432",
+            targets: ["Retune432App"]
+        )
     ],
     targets: [
         .executableTarget(
