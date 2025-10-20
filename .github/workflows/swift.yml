@@ -1,17 +1,12 @@
 name: swift-app
-
-on:
-  push:
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   build-swiftui-app:
     runs-on: macos-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Build Swift package
+      - uses: actions/checkout@v4
+      - name: Build SPM executable
         run: |
           cd app/Retune432App
           swift build -c release --product Retune432
