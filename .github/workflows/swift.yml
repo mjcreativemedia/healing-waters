@@ -1,12 +1,28 @@
 name: swift-app
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
 
 jobs:
   build-swiftui-app:
-    runs-on: macos-latest
+    name: Build SwiftUI app (macOS)
+    runs-on: macos-latest  # <- must be macOS, not ubuntu
+
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer  # pin Xcode
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Build SPM executable
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show swift/xcode versions
         run: |
-          cd app/Retune432App
+          xcodebuild -version
+          swift --version
+
+      - name: Build SPM executable
+        working-directory: app/Retune432App
+        run: |
+          # Make sure the product name matches Package.swift exactly
           swift build -c release --product Retune432
