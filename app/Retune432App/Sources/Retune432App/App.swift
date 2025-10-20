@@ -28,6 +28,7 @@ final class AppModel: ObservableObject {
 struct ContentView: View {
     @EnvironmentObject var model: AppModel
     @State private var isProcessing = false
+    private let supportedExtensions: Set<String> = ["wav", "mp3", "flac", "m4a", "aiff", "aif"]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -68,7 +69,44 @@ struct ContentView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = true
         if panel.runModal() == .OK {
-            model.queue = panel.urls
+            let fm = FileManager.default
+            var inputs: [URL] = []
+            var emptyDirectories: [URL] = []
+
+            for url in panel.urls {
+                var isDir: ObjCBool = false
+                guard fm.fileExists(atPath: url.path, isDirectory: &isDir) else { continue }
+
+                if isDir.boolValue {
+                    var foundSupportedFile = false
+                    if let enumerator = fm.enumerator(at: url,
+                                                     includingPropertiesForKeys: [.isRegularFileKey],
+                                                     options: [.skipsHiddenFiles, .skipsPackageDescendants],
+                                                     errorHandler: nil) {
+                        for case let fileURL as URL in enumerator {
+                            if let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey]),
+                               values.isRegularFile == true,
+                               isSupportedAudio(fileURL) {
+                                inputs.append(fileURL)
+                                foundSupportedFile = true
+                            }
+                        }
+                    }
+                    if !foundSupportedFile {
+                        emptyDirectories.append(url)
+                    }
+                } else if isSupportedAudio(url) {
+                    inputs.append(url)
+                }
+            }
+
+            if !emptyDirectories.isEmpty {
+                for directory in emptyDirectories {
+                    model.log += "No supported audio files found in \(directory.lastPathComponent)\n"
+                }
+            }
+
+            model.queue = inputs
         }
     }
 
@@ -89,7 +127,16 @@ struct ContentView: View {
         guard let out = model.outputDir else { return }
         isProcessing = true
         Task.detached {
+            let fm = FileManager.default
             for input in model.queue {
+                var isDir: ObjCBool = false
+                if fm.fileExists(atPath: input.path, isDirectory: &isDir), isDir.boolValue {
+                    DispatchQueue.main.async {
+                        self.model.log += "Skipping directory: \(input.lastPathComponent)\n"
+                    }
+                    continue
+                }
+
                 let ok = await runFFmpegRetune(input: input, outputDir: out, appendLog: { line in
                     DispatchQueue.main.async { self.model.log += line + "\n" }
                 })
@@ -99,5 +146,10 @@ struct ContentView: View {
             }
             DispatchQueue.main.async { self.isProcessing = false }
         }
+    }
+
+    private func isSupportedAudio(_ url: URL) -> Bool {
+        let ext = url.pathExtension.lowercased()
+        return !ext.isEmpty && supportedExtensions.contains(ext)
     }
 }
