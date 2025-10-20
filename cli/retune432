@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ $# -lt 2 ]]; then
+  echo "Usage: retune432 <input-folder> <output-folder> [--exts <.ext ...>]" >&2
+  exit 1
+fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ENGINE="$ROOT_DIR/core/retune_432.py"
+if [[ ! -f "$ENGINE" ]]; then
+  echo "Could not locate retune engine at $ENGINE" >&2
+  exit 1
+fi
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+set +e
+"$PYTHON_BIN" "$ENGINE" "$@"
+status=$?
+set -e
+if [[ $status -ne 0 ]]; then
+  exit $status
+fi
+echo "✅ Retune complete. Output folder: $2"

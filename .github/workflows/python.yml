@@ -1,0 +1,71 @@
+name: python-engine
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-python:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Smoke-test 432 Hz engine
+        run: |
+          python - <<'PY'
+          import math
+          import os
+          import pathlib
+          import subprocess
+          import sys
+
+          import numpy as np
+          import soundfile as sf
+
+          sr = 44100
+          duration = 2.0
+          t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+          tone = np.sin(2 * np.pi * 440 * t)
+
+          input_dir = pathlib.Path('ci_input')
+          output_dir = pathlib.Path('ci_output')
+          input_dir.mkdir(exist_ok=True)
+          output_dir.mkdir(exist_ok=True)
+
+          src_path = input_dir / 'tone.wav'
+          sf.write(src_path, tone, sr, subtype='PCM_24')
+
+          subprocess.check_call([
+              sys.executable,
+              'core/retune_432.py',
+              str(input_dir),
+              str(output_dir)
+          ])
+
+          outputs = list(output_dir.glob('432_tone*.wav'))
+          if not outputs:
+              raise SystemExit('Expected a 432 Hz output file but none were created.')
+
+          import soundfile as sf2
+          out_audio, out_sr = sf2.read(outputs[0])
+          if out_sr != sr:
+              raise SystemExit(f'Sample rate changed unexpectedly: {out_sr} vs {sr}')
+
+          ratio = len(out_audio) / len(tone)
+          expected = 440 / 432  # ≈ 1.0185185 but using reciprocal check keeps tolerance simple
+          if not math.isclose(ratio, expected, rel_tol=0.005):
+              raise SystemExit(f'Length ratio {ratio:.6f} deviates from expected {expected:.6f}')
+
+          info = sf2.info(outputs[0])
+          if info.subtype != 'PCM_24':
+              raise SystemExit(f'Output subtype {info.subtype} != PCM_24')
+          PY
