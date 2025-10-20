@@ -1,0 +1,1 @@
+ffmpeg -i in.wav -af asetrate=44100*432/440,aresample=44100 out.wav
