@@ -29,7 +29,7 @@ Healing Waters converts any standard 440 Hz recording to **true 432 Hz** by 
    ```
 
 - Output files are named `432_<original>.wav`
-- Duration becomes **~ +1.852 % longer** — the fingerprint of true 432 Hz resampling
+- Duration becomes **~ +1.818 % longer** — the fingerprint of true 432 Hz resampling
 - Supported extensions: `.wav`, `.mp3`, `.flac`, `.m4a`, `.aiff`, `.aif`
 
 ### Option A — CLI Wrapper
@@ -54,8 +54,8 @@ Healing Waters converts any standard 440 Hz recording to **true 432 Hz** by 
 - Build & run:
   ```bash
   cd app/Retune432App
-  swift build -c release
-  open .build/release/Retune432.app
+  swift build -c release --product Retune432
+  open .build/release/Retune432
   ```
 - Select input/output folders, press **“Retune to 432”**, and watch the live log as FFmpeg runs `asetrate=sample_rate*432/440,aresample=sample_rate` for every supported file.
 
@@ -65,7 +65,7 @@ Healing Waters converts any standard 440 Hz recording to **true 432 Hz** by 
 | Expectation | How to verify |
 |-------------|---------------|
 | **24‑bit PCM WAV** | `python3 - <<'PY'` / `soundfile.info('432_track.wav').subtype` → `PCM_24` |
-| **Duration ≈ +1.852 %** | Compare sample counts: `len(output)/len(input) ≈ 1.01852` |
+| **Duration ≈ +1.818 %** | Compare sample counts: `len(output)/len(input) ≈ 1.01818` |
 | **Original sample rate** | Inspect metadata (e.g. `soxi -r 432_track.wav`) |
 | **True 432/440 scaling** | Waveform pitch shift calculators report –31.766 cents |
 
@@ -82,7 +82,7 @@ Screenshots and waveform comparisons are coming in the v0.1 launch notes (“Liv
 ---
 
 ## 🧪 Continuous Integration
-- **`python-engine`** workflow synthesizes a 440 Hz tone, retunes it, and asserts sample-count ratio ≈ 1.01852 and PCM_24 output
+- **`python-engine`** workflow synthesizes a 440 Hz tone, retunes it, and asserts sample-count ratio ≈ 1.01818 and PCM_24 output
 - **`swift-app`** workflow builds the SwiftUI FFmpeg wrapper on macOS-latest
 
 Both workflows run on every push / pull request to keep the toolkit reproducible on Apple Silicon.
