@@ -59,6 +59,21 @@ Healing Waters converts any standard 440 Hz recording to **true 432 Hz** by 
   ```
 - Select input/output folders, press **“Retune to 432”**, and watch the live log as FFmpeg runs `asetrate=sample_rate*432/440,aresample=sample_rate` for every supported file.
 
+## 🍎 macOS App (SwiftUI v0.2)
+- Live file queue with per-track status (Queued → Running → Done / Failed / Canceled)
+- Streaming FFmpeg stderr log with Save Log export and drag-and-drop inputs
+- Automatic sample-rate detection per file with `ffprobe`, preserving the original rate
+- Preferences remember default bit depth (24-bit PCM by default) and output folder
+- Cancel button terminates the active FFmpeg process and marks the rest as canceled
+
+![macOS app file selection placeholder](docs/images/mac-file-selection.png)
+![macOS app progress placeholder](docs/images/mac-progress.png)
+![macOS duration proof placeholder](docs/images/mac-duration-proof.png)
+
+> Output files are 24-bit WAV by default, keep the original sample rate, and extend duration by ≈ +1.852 % (432/440).
+
+📚 See [`docs/app-usage.md`](docs/app-usage.md) for an illustrated walkthrough (drag-and-drop, cancellation, log export, and preferences).
+
 ---
 
 ## ✅ Verification Checklist
@@ -76,6 +91,7 @@ Healing Waters converts any standard 440 Hz recording to **true 432 Hz** by 
 - [`docs/HEALING_WATERS_432.md`](docs/HEALING_WATERS_432.md) — philosophy & tone
 - [`docs/styles-library.md`](docs/styles-library.md) — visual palette for video loops
 - [`docs/FFmpeg-line.txt`](docs/FFmpeg-line.txt) — raw FFmpeg recipe reference
+- [`docs/app-usage.md`](docs/app-usage.md) — SwiftUI app walkthrough with screenshots
 
 Screenshots and waveform comparisons are coming in the v0.1 launch notes (“Living Paintings Edition”).
 
